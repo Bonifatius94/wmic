@@ -1,11 +1,12 @@
 import subprocess
 
 
-def query(category: str | list[str], parameters: str | list[str]) -> list[dict[str, str]]:
-    category = category if isinstance(category, list) else [category]
-    parameters = parameters if isinstance(parameters, list) else [parameters]
+def query(category: str | list[str], parameters: str | list[str]=None) -> list[dict[str, str]]:
+    category = [category] if isinstance(category, str) else category
+    parameters = [parameters] if isinstance(parameters, str) else parameters
+
     process = subprocess.run(
-        ["wmic"] + category + ["get", ",".join(parameters)],
+        ["wmic"] + category + (["get", ",".join(parameters)] if parameters else []),
         capture_output=True
     )
     content = process.stdout.decode("utf-8")
@@ -16,10 +17,6 @@ def query(category: str | list[str], parameters: str | list[str]) -> list[dict[s
     lines = without_empty_strings(content.splitlines())
     header, data_rows = lines[0].lower(), lines[1:]
     columns = without_empty_strings(header.split(" "))
-
-    params_formatted = sorted(map(lambda p: p.lower(), parameters))
-    if params_formatted != columns:
-        raise ValueError("invalid query")
 
     offsets = list(map(lambda c: header.index(c), columns))
 
