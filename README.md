@@ -1,0 +1,2 @@
+# wmic
+simple wmic query
